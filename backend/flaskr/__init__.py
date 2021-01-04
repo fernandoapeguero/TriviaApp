@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request, abort, jsonify
+from flask import Flask, json, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import random
@@ -16,16 +16,67 @@ def create_app(test_config=None):
   '''
   @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
   '''
+  cors = CORS(app, resources={r"/trivia/*": {"origins": "*"}})
+
 
   '''
   @TODO: Use the after_request decorator to set Access-Control-Allow
   '''
+  @app.after_request
+  def after_request(reponse):
+        reponse.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,true')
+        reponse.headers.add('Access-Control-Allow-Method' , 'GET,PATCH ,POST, DELETE , OPTIONS')
+        return reponse
+        
+  QUESTION_COUNT = 10
+
+  def paginate(request ,selection):
+        
+        page = request.args.get('page' , 1 , type=int)
+        start = (page - 1) * QUESTION_COUNT
+        end = start + QUESTION_COUNT
+        
+        questions = [question.format() for question in selection]
+        
+        current_questions = questions[start:end]
+        print(current_questions)
+        return current_questions
+        
+
 
   '''
   @TODO: 
   Create an endpoint to handle GET requests 
   for all available categories.
   '''
+  @app.route('/trivia/questions')
+  def index():
+
+      try:
+        data = request.form
+
+        print(data)
+        categories = Category.query.all()
+        questions = Question.query.all()
+        # print(questions)
+        paginated_questions = paginate( request ,questions)
+
+        current_categories = [category.format() for category in categories]
+
+        result = {}
+
+        for c in current_categories:
+              result[c['id']] = c['type']
+
+        print(paginated_questions)
+        return jsonify({
+          "questions": paginated_questions,
+          "totalQuestions": len(questions),
+          "categories":  result
+        })
+
+      except:
+        abort(404)
 
 
   '''
