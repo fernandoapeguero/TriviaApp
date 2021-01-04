@@ -39,7 +39,7 @@ def create_app(test_config=None):
         questions = [question.format() for question in selection]
         
         current_questions = questions[start:end]
-        print(current_questions)
+  
         return current_questions
         
 
@@ -53,9 +53,7 @@ def create_app(test_config=None):
   def index():
 
       try:
-        data = request.form
 
-        print(data)
         categories = Category.query.all()
         questions = Question.query.all()
         # print(questions)
@@ -68,7 +66,6 @@ def create_app(test_config=None):
         for c in current_categories:
               result[c['id']] = c['type']
 
-        print(paginated_questions)
         return jsonify({
           "questions": paginated_questions,
           "totalQuestions": len(questions),
@@ -91,7 +88,27 @@ def create_app(test_config=None):
   ten questions per page and pagination at the bottom of the screen for three pages.
   Clicking on the page numbers should update the questions. 
   '''
+  @app.route('/categories/<int:category_id>/questions')
+  def get_questions_by_category(category_id):
+        
+        try:
+          print(category_id)
+          category = Category.query.filter_by(id=category_id).first()
+          questions = Question.query.filter_by(category=str(category.id)).all()
 
+          current_questions = [question.format() for question in questions]
+          
+          return jsonify({
+            "questions": current_questions,
+            "totalQuestions": len(questions),
+            "currentCategory": category.type
+
+          })
+          
+        except:
+          print('did not work ')
+        
+        abort(404)
   '''
   @TODO: 
   Create an endpoint to DELETE question using a question ID. 
