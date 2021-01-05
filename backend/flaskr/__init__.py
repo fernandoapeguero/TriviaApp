@@ -55,7 +55,7 @@ def create_app(test_config=None):
       try:
 
         categories = Category.query.all()
-        questions = Question.query.all()
+        questions = Question.query.order_by('id').all()
         # print(questions)
         paginated_questions = paginate( request ,questions)
 
@@ -73,7 +73,7 @@ def create_app(test_config=None):
         })
 
       except:
-        abort(404)
+        abort(400)
 
 
   '''
@@ -106,9 +106,9 @@ def create_app(test_config=None):
           })
           
         except:
-          print('did not work ')
+          abort(404)
         
-        abort(404)
+        
   '''
   @TODO: 
   Create an endpoint to DELETE question using a question ID. 
@@ -117,6 +117,23 @@ def create_app(test_config=None):
   This removal will persist in the database and when you refresh the page. 
   '''
 
+  @app.route('/trivia/questions/<int:question_id>' , methods=['DELETE'])
+  def delete_question(question_id):
+        print('nothing')
+        try:
+          
+          question = Question.query.get(question_id)
+
+          current_question = question.format()
+          question.delete()
+        
+          return jsonify({
+            'success': True,
+            'id': current_question['id'],
+            'question': current_question['question']
+          })
+        except:
+          abort(404)
   '''
   @TODO: 
   Create an endpoint to POST a new question, 
@@ -138,6 +155,24 @@ def create_app(test_config=None):
   only question that include that string within their question. 
   Try using the word "title" to start. 
   '''
+
+  @app.route('/trivia/questions' , methods=['POST'])
+  def get_question():
+    try:
+      data = request.get_json()
+      search_term = data['searchTerm']
+
+      questions = Question.query.filter(Question.question.ilike(f'%{search_term}%')).all()
+
+      current_questions = paginate(request , questions)
+
+      return jsonify({
+        'success': True ,
+        'questions': current_questions,
+        'totalQuestions': len(questions)
+      })
+    except:
+      abort(404)
 
   '''
   @TODO: 
@@ -166,7 +201,44 @@ def create_app(test_config=None):
   Create error handlers for all expected errors 
   including 404 and 422. 
   '''
-  
+  # 400, 404, 422 and 500
+
+  @app.errorhandler(400)
+  def bad_request(error):
+        
+        return jsonify({
+          'success': False,
+          'error':  400,
+          'message': 'Bad request'
+        }), 400
+
+  @app.errorhandler(404)
+  def not_found(error):
+        
+        return jsonify({
+          'success': False,
+          'error':  404,
+          'message': 'Not Found'
+        }), 404
+
+  @app.errorhandler(422)
+  def unproccesable(error):
+        
+        return jsonify({
+          'success': False,
+          'error':  422,
+          'message': 'Unprocessable'
+        }), 422
+
+  @app.errorhandler(500)
+  def server_error(error):
+        
+        return jsonify({
+          'success': False,
+          'error':  500,
+          'message': 'Server Error'
+        }), 500
+
   return app
 
     
