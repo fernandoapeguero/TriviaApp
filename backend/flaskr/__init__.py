@@ -14,7 +14,7 @@ def create_app(test_config=None):
   app = Flask(__name__)
   setup_db(app)
   
-  cors = CORS(app, resources={r"/trivia_api/*": {"origins": "*"}})
+  cors = CORS(app, resources={r'/trivia_api/*': {'origins': '*'}})
 
   @app.after_request
   def after_request(reponse):
@@ -48,7 +48,7 @@ def create_app(test_config=None):
 
   # ===================== End Points ======================
 
-  @app.route("/trivia_api/categories")
+  @app.route('/trivia_api/categories')
   def get_categories():
         
         try:
@@ -63,15 +63,15 @@ def create_app(test_config=None):
               categories_result[c['id']] = c['type']
 
           return jsonify({
-            "success": True,
-            "categories": categories_result
-          })
+            'success': True,
+            'categories': categories_result
+          }), 200
         except:
-          abort(400)
+          abort(404)
 
 
-  @app.route('/trivia_api/main/questions')
-  def index():
+  @app.route('/trivia_api/questions' , methods=['GET'])
+  def get_questions():
 
       try:
 
@@ -79,6 +79,9 @@ def create_app(test_config=None):
         questions = Question.query.order_by('id').all()
       
         paginated_questions = paginate( request ,questions)
+
+        if len(paginated_questions) == 0:
+              abort(404)
 
         formatted_categories = [category.format() for category in categories]
 
@@ -88,10 +91,11 @@ def create_app(test_config=None):
               categories_result[c['id']] = c['type']
 
         return jsonify({
-          "questions": paginated_questions,
-          "totalQuestions": len(questions),
-          "categories":  categories_result
-        })
+          'success': True,
+          'questions': paginated_questions,
+          'totalQuestions': len(questions),
+          'categories':  categories_result
+        }) , 200
 
       except:
         abort(404)
@@ -99,7 +103,8 @@ def create_app(test_config=None):
 
   @app.route('/trivia_api/<int:question_id>/questions' , methods=['DELETE'])
   def delete_question(question_id):
-        print('nothing')
+        
+        current_question = ''
         try:
           
           question = Question.query.get(question_id)
@@ -110,12 +115,12 @@ def create_app(test_config=None):
           return jsonify({
             'success': True,
             'id': current_question['id'],
-            'question': current_question['question']
-          })
+            'deletedQuestion': current_question
+          }) , 200
         except:
           abort(404)
 
-  @app.route("/trivia_api/questions" , methods=['POST'])
+  @app.route('/trivia_api/questions' , methods=['POST'])
   def post_question():
         
         try:
@@ -125,22 +130,28 @@ def create_app(test_config=None):
           answer = data.get('answer')
           difficulty = data.get('difficulty')
           category = data.get('category')
+          
+          print(data)
 
-          question = Question(
-              question=question,
-              answer=answer,
-              category=category,
-              difficulty=difficulty
-          )
+          if not question  or not answer  or not difficulty or not category:
+                abort(422)
+          else:
 
-          question.insert()
+                question = Question(
+                    question=question,
+                    answer=answer,
+                    category=category,
+                    difficulty=difficulty
+                )
 
-          return jsonify({
-            "success": True
-          })
+                question.insert()
+
+                return jsonify({
+                  'success': True
+                }) , 200
 
         except:
-          abort(400)
+          abort(422)
 
   @app.route('/trivia_api/search_questions' , methods=['POST'])
   def get_question():
@@ -156,7 +167,7 @@ def create_app(test_config=None):
         'success': True ,
         'questions': formatted_questions,
         'totalQuestions': len(questions)
-      })
+      }) , 200
     except:
       abort(422)
 
@@ -171,41 +182,43 @@ def create_app(test_config=None):
           formatted_questions = [question.format() for question in questions]
           
           return jsonify({
-            "questions": formatted_questions,
-            "totalQuestions": len(questions),
-            "currentCategory": category.type
-
-          })
+            'success': True,
+            'questions': formatted_questions,
+            'totalQuestions': len(questions),
+            'currentCategory': category.type
+          }),200
           
         except:
           abort(404)
         
-  @app.route("/trivia_api/quizzes" , methods=['POST'])
+  @app.route('/trivia_api/quizzes' , methods=['POST'])
   def get_quizz_questions():
         
         try:
           data = request.get_json()
-
+          print(data)
           quizz_category = data.get('quiz_category')['id']
           previous_questions = data.get('previous_questions')
           questions_tupple = tuple(previous_questions)      
-          print(questions_tupple)
-          
+          print(quizz_category)
           current_question = ''
           
           if quizz_category == 0:
-
+              print('all')
               questions = Question.query.filter(Question.id.notin_(questions_tupple)).all()
               current_question = random_question(questions)
           else: 
-
+              print('specific')
               questions = Question.query.filter(Question.category == quizz_category , Question.id.notin_(questions_tupple)).all()
               current_question = random_question(questions)
 
+
+          print(current_question)
+
           return jsonify({
-            "success": True,
-            "question": current_question 
-          })
+            'success': True,
+            'question': current_question 
+          }) ,200
         except:
           abort(404)
 

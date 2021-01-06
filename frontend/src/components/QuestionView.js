@@ -23,7 +23,7 @@ class QuestionView extends Component {
 
   getQuestions = () => {
     $.ajax({
-      url: `/trivia/questions?page=${this.state.page}`, //TODO: update request URL
+      url: `/trivia_api/questions?page=${this.state.page}`, 
       type: "GET",
       success: (result) => {
         this.setState({
@@ -60,7 +60,7 @@ class QuestionView extends Component {
 
   getByCategory= (id) => {
     $.ajax({
-      url: `/categories/${id}/questions`, //TODO: update request URL
+      url: `/trivia_api/${id}/categories`, 
       type: "GET",
       success: (result) => {
         this.setState({
@@ -78,7 +78,7 @@ class QuestionView extends Component {
 
   submitSearch = (searchTerm) => {
     $.ajax({
-      url: `/trivia/questions`, //TODO: update request URL
+      url: `/trivia_api/search_questions`, 
       type: "POST",
       dataType: 'json',
       contentType: 'application/json',
@@ -105,7 +105,7 @@ class QuestionView extends Component {
     if(action === 'DELETE') {
       if(window.confirm('are you sure you want to delete the question?')) {
         $.ajax({
-          url: `/trivia/questions/${id}`, //TODO: update request URL
+          url: `/trivia_api/${id}/questions`, 
           type: "DELETE",
           success: (result) => {
             this.getQuestions();
