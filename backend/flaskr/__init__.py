@@ -2,7 +2,8 @@ import os
 from flask import Flask, json, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
-import random
+from random import random
+import math 
 
 from models import setup_db, Question, Category
 
@@ -16,7 +17,7 @@ def create_app(test_config=None):
   '''
   @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
   '''
-  cors = CORS(app, resources={r"/trivia/*": {"origins": "*"}})
+  cors = CORS(app, resources={r"/trivia_api/*": {"origins": "*"}})
 
 
   '''
@@ -38,9 +39,9 @@ def create_app(test_config=None):
         
         questions = [question.format() for question in selection]
         
-        current_questions = questions[start:end]
+        formatted_questions = questions[start:end]
   
-        return current_questions
+        return formatted_questions
         
 
 
@@ -49,32 +50,26 @@ def create_app(test_config=None):
   Create an endpoint to handle GET requests 
   for all available categories.
   '''
-  @app.route('/trivia/questions')
-  def index():
+  @app.route("/trivia_api/categories")
+  def get_categories():
+        
+        try:
+          categories = Category.query.all()
 
-      try:
+          formatted_categories = [category.format() for category in categories]
+          print(formatted_categories)
 
-        categories = Category.query.all()
-        questions = Question.query.order_by('id').all()
-        # print(questions)
-        paginated_questions = paginate( request ,questions)
+          categories_result = {}
 
-        current_categories = [category.format() for category in categories]
+          for c in formatted_categories:
+              categories_result[c['id']] = c['type']
 
-        result = {}
-
-        for c in current_categories:
-              result[c['id']] = c['type']
-
-        return jsonify({
-          "questions": paginated_questions,
-          "totalQuestions": len(questions),
-          "categories":  result
-        })
-
-      except:
-        abort(400)
-
+          return jsonify({
+            "success": True,
+            "categories": categories_result
+          })
+        except:
+          abort(400)
 
   '''
   @TODO: 
@@ -88,25 +83,32 @@ def create_app(test_config=None):
   ten questions per page and pagination at the bottom of the screen for three pages.
   Clicking on the page numbers should update the questions. 
   '''
-  @app.route('/categories/<int:category_id>/questions')
-  def get_questions_by_category(category_id):
-        
-        try:
-          print(category_id)
-          category = Category.query.filter_by(id=category_id).first()
-          questions = Question.query.filter_by(category=str(category.id)).all()
+  
+  @app.route('/trivia_api/main/questions')
+  def index():
 
-          current_questions = [question.format() for question in questions]
-          
-          return jsonify({
-            "questions": current_questions,
-            "totalQuestions": len(questions),
-            "currentCategory": category.type
+      try:
 
-          })
-          
-        except:
-          abort(404)
+        categories = Category.query.order_by('id').all()
+        questions = Question.query.order_by('id').all()
+      
+        paginated_questions = paginate( request ,questions)
+
+        formatted_categories = [category.format() for category in categories]
+
+        categories_result = {}
+
+        for c in formatted_categories:
+              categories_result[c['id']] = c['type']
+
+        return jsonify({
+          "questions": paginated_questions,
+          "totalQuestions": len(questions),
+          "categories":  categories_result
+        })
+
+      except:
+        abort(404)
         
         
   '''
@@ -117,7 +119,7 @@ def create_app(test_config=None):
   This removal will persist in the database and when you refresh the page. 
   '''
 
-  @app.route('/trivia/questions/<int:question_id>' , methods=['DELETE'])
+  @app.route('/trivia_api/<int:question_id>/questions' , methods=['DELETE'])
   def delete_question(question_id):
         print('nothing')
         try:
@@ -145,6 +147,33 @@ def create_app(test_config=None):
   of the questions list in the "List" tab.  
   '''
 
+
+  @app.route("/trivia_api/questions" , methods=['POST'])
+  def post_question():
+        
+        try:
+          data = request.get_json()
+
+          question = data.get('question')
+          answer = data.get('answer')
+          difficulty = data.get('difficulty')
+          category = data.get('category')
+
+          question = Question(
+              question=question,
+              answer=answer,
+              category=category,
+              difficulty=difficulty
+          )
+
+          question.insert()
+
+          return jsonify({
+            "success": True
+          })
+
+        except:
+          abort(400)
   '''
   @TODO: 
   Create a POST endpoint to get questions based on a search term. 
@@ -156,7 +185,7 @@ def create_app(test_config=None):
   Try using the word "title" to start. 
   '''
 
-  @app.route('/trivia/questions' , methods=['POST'])
+  @app.route('/trivia_api/search_questions' , methods=['POST'])
   def get_question():
     try:
       data = request.get_json()
@@ -164,15 +193,15 @@ def create_app(test_config=None):
 
       questions = Question.query.filter(Question.question.ilike(f'%{search_term}%')).all()
 
-      current_questions = paginate(request , questions)
+      formatted_questions = paginate(request , questions)
 
       return jsonify({
         'success': True ,
-        'questions': current_questions,
+        'questions': formatted_questions,
         'totalQuestions': len(questions)
       })
     except:
-      abort(404)
+      abort(422)
 
   '''
   @TODO: 
@@ -182,7 +211,25 @@ def create_app(test_config=None):
   categories in the left column will cause only questions of that 
   category to be shown. 
   '''
+  @app.route('/trivia_api/<int:category_id>/categories')
+  def get_questions_by_category(category_id):
+        
+        try:
+  
+          category = Category.query.filter_by(id=category_id).first()
+          questions = Question.query.filter_by(category=str(category.id)).all()
 
+          formatted_questions = [question.format() for question in questions]
+          
+          return jsonify({
+            "questions": formatted_questions,
+            "totalQuestions": len(questions),
+            "currentCategory": category.type
+
+          })
+          
+        except:
+          abort(404)
 
   '''
   @TODO: 
@@ -195,6 +242,35 @@ def create_app(test_config=None):
   one question at a time is displayed, the user is allowed to answer
   and shown whether they were correct or not. 
   '''
+  @app.route("/trivia_api/quizzes" , methods=['POST'])
+  def get_quizz_questions():
+        
+        try:
+          data = request.get_json()
+
+          quizz_category = data.get('quiz_category')['id']
+          previous_questions = data.get('previous_questions')
+          questions_tupple = tuple(previous_questions)      
+          print(questions_tupple)
+          
+          current_question = ''
+          
+          if quizz_category == 0:
+              current_question = Question.query.filter(Question.id.notin_(questions_tupple)).first()
+          else: 
+              current_question = Question.query.filter(Question.category == quizz_category , Question.id.notin_(questions_tupple)).first()
+
+
+          if current_question is None:
+                current_question = ''
+                
+
+          return jsonify({
+            "success": True,
+            "question": current_question.format() 
+          })
+        except:
+          abort(404)
 
   '''
   @TODO: 
