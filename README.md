@@ -25,7 +25,7 @@ whoever have more points wins.
 
 To add a question go to the add tab and insert the information require if any of the field are empty it will not be uploaded to the game.
 
-## Game
+## Game Preview
 
 <img width="960" alt="trivia" src="https://user-images.githubusercontent.com/25759298/103929445-5778c000-50eb-11eb-8d17-46740639c633.PNG">
 
