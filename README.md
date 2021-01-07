@@ -29,6 +29,7 @@ To add a question go to the add tab and insert the information require if any of
 
 <img width="960" alt="trivia" src="https://user-images.githubusercontent.com/25759298/103929445-5778c000-50eb-11eb-8d17-46740639c633.PNG">
 
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Getting Setup
 
@@ -103,9 +104,17 @@ This will install all of the required packages we selected within the `requireme
 
 ## Database Setup
 With Postgres running, restore a database using the trivia.psql file provided. From the backend folder in terminal run:
+
+Unix Base Cmd's
 ```bash
 psql trivia < trivia.psql
 ```
+Windows Cmd
+
+```bash
+psql -U (postgres username) trivia < trivia.psql
+```
+
 
 ## Running the server
 
@@ -134,3 +143,53 @@ python test_flaskr.py
 ```
 
 
+# Trivia Api Endpoints
+
+## Authentication 
+
+There is no authentication needed for this api
+  ```
+  Authentication is on the road map in future updates of the api
+  ```
+## Base Url 
+
+the base url returns a list of all the question in the api and the categories in the trivia. Pagination is integrated into the api each page will get 10 questions each.
+
+    https://localhost:5000/trivia_api/questions
+
+
+###  Sample Response From Base Url
+ 
+ ```bash
+ {
+  "categories": {
+    "1": "Science", 
+    "2": "Art", 
+    "3": "Geography", 
+    "4": "History", 
+    "5": "Entertainment", 
+    "6": "Sports"
+  }, 
+  "questions": [
+    {
+      "answer": "Lake Victoria", 
+      "category": "3", 
+      "difficulty": 2, 
+      "id": 13, 
+      "question": "What is the largest lake in Africa?"
+    }
+  ], 
+  "success": true, 
+  "totalQuestions": 21
+}
+ ```
+  
+ ## Error Handling 
+ 
+ Type of error the api handles
+
+   * 400 Bad Request
+   * 404 Not Found
+   * 405 Method Not Allowed
+   * 422 Unproccesable Entity
+   * 500 Server Error 
