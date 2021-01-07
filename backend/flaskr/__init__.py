@@ -71,7 +71,7 @@ def create_app(test_config=None):
           abort(404)
 
 
-  @app.route('/trivia_api/questions' , methods=['GET'])
+  @app.route('/trivia_api/questions')
   def get_questions():
 
       try:
@@ -156,9 +156,10 @@ def create_app(test_config=None):
 
   @app.route('/trivia_api/search_questions' , methods=['POST'])
   def get_question():
+        
     try:
       data = request.get_json()
-      search_term = data['searchTerm']
+      search_term = data['searchTerm']  
 
       questions = Question.query.filter(Question.question.ilike(f'%{search_term}%')).all()
 
@@ -198,7 +199,7 @@ def create_app(test_config=None):
         try:
           data = request.get_json()
           print(data)
-          quizz_category = data.get('quiz_category')['id']
+          quizz_category = data.get('quizz_category')['id']
           previous_questions = data.get('previous_questions')
           questions_tupple = tuple(previous_questions)      
           print(quizz_category)

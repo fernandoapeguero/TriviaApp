@@ -25,10 +25,23 @@ class TriviaTestCase(unittest.TestCase):
             # create all tables
             self.db.create_all()
     
+            
+
+
     def tearDown(self):
         """Executed after reach test"""
         pass
     
+    def test_delete_question(self):
+            # Change item_id to desire id to be deleted
+        item_id  = 25
+        res = self.client().delete(f'/trivia_api/{item_id}/questions')
+        
+        data = json.loads(res.data)
+        print(data)
+        self.assertEqual(res.status_code, 200 )
+        self.assertEqual(data['id'] , item_id)
+        self.assertTrue(data['deletedQuestion'])
 
     def test_get_categories(self):
         res = self.client().get("/trivia_api/categories")
@@ -156,17 +169,7 @@ class TriviaTestCase(unittest.TestCase):
         res = self.client().post('/trivia_api/quizzes' , json=json_data)
 
         self.assertEqual(res.status_code , 404)
-        
-    def test_delete_question(self):
-        # Change item_id to desire id to be deleted
-        item_id  = 41
-        res = self.client().delete(f'/trivia_api/{item_id}/questions')
-        
-        data = json.loads(res.data)
-        print(data)
-        self.assertEqual(res.status_code, 200 )
-        self.assertEqual(data['id'] , item_id)
-        self.assertTrue(data['deletedQuestion'])
+
 
 
 # Make the tests conveniently executable
