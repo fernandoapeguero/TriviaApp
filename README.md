@@ -17,6 +17,8 @@ Categories :
     
 ### How to play 
 
+<img width="960" alt="playgame" src="https://user-images.githubusercontent.com/25759298/103928999-99553680-50ea-11eb-8a3c-43ca4ae0f59c.PNG">
+
 You can choose a category from the provided ones and complete the questions and compare scores with you friends at the end 
 whoever have more points wins if you want to add any question you do so in the add tab before starting the games.
 
